@@ -39,7 +39,7 @@ Tagging `v*` triggers the GitHub Actions workflow, which for each supported targ
 
 Supported targets:
 
-- `x86_64-apple-darwin`
+- `aarch64-apple-darwin`
 - `x86_64-unknown-linux-gnu`
 
 ## Create a release
