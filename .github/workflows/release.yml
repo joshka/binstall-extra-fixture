@@ -1,0 +1,50 @@
+name: release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  build-release:
+    name: ${{ matrix.target }}
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: x86_64-apple-darwin
+            runner: macos-13
+          - target: x86_64-unknown-linux-gnu
+            runner: ubuntu-22.04
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: Build release binary
+        run: cargo build --release --locked --target ${{ matrix.target }} --bin binstall-extra-fixture
+
+      - name: Package release archive
+        env:
+          VERSION: ${{ github.ref_name }}
+        run: |
+          cargo run --locked --bin package-release -- \
+            --target ${{ matrix.target }} \
+            --version "${VERSION#v}" \
+            --binary target/${{ matrix.target }}/release/binstall-extra-fixture \
+            --out-dir dist
+          echo "ASSET_NAME=binstall-extra-fixture-${{ matrix.target }}-v${VERSION#v}.tar.gz" >> "$GITHUB_ENV"
+
+      - name: Upload release asset
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/${{ env.ASSET_NAME }}

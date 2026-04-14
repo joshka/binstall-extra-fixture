@@ -1,0 +1,25 @@
+[package]
+name = "binstall-extra-fixture"
+version = "0.1.0"
+edition = "2024"
+description = "Fixture crate for testing cargo-binstall extra-file installs"
+license = "MIT"
+repository = "https://github.com/joshka/binstall-extra-fixture"
+
+[package.metadata.binstall]
+pkg-url = "{ repo }/releases/download/v{ version }/{ name }-{ target }-v{ version }{ archive-suffix }"
+bin-dir = "{ name }-{ target }-v{ version }/{ bin }{ binary-ext }"
+pkg-fmt = "tgz"
+
+[[bin]]
+name = "binstall-extra-fixture"
+path = "src/main.rs"
+
+[[bin]]
+name = "package-release"
+path = "src/bin/package-release.rs"
+
+[dependencies]
+clap = { version = "4", features = ["derive"] }
+clap_complete = "4"
+clap_mangen = "0.3"
