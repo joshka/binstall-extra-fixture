@@ -37,7 +37,7 @@ jobs:
         env:
           VERSION: ${{ github.ref_name }}
         run: |
-          cargo run --locked --bin package-release -- \
+          cargo run --locked -p xtask -- package-release \
             --target ${{ matrix.target }} \
             --version "${VERSION#v}" \
             --binary target/${{ matrix.target }}/release/binstall-extra-fixture \

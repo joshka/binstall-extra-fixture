@@ -37,6 +37,9 @@ Tagging `v*` triggers the GitHub Actions workflow, which for each supported targ
 4. creates a `.tar.gz` archive
 5. uploads the archive to the GitHub release
 
+Release packaging is implemented in the repo-local `xtask` helper crate so the
+published package exposes only the real `binstall-extra-fixture` CLI binary.
+
 Supported targets:
 
 - `aarch64-apple-darwin`
@@ -45,8 +48,8 @@ Supported targets:
 ## Create a release
 
 ```sh
-git tag v0.1.0
-git push origin v0.1.0
+git tag v0.1.2
+git push origin v0.1.2
 ```
 
 ## Test with cargo-binstall
@@ -63,9 +66,9 @@ On a supported host target you can build and package an archive locally:
 
 ```sh
 cargo build --release
-cargo run --bin package-release -- \
+cargo run -p xtask -- package-release \
   --target "$(rustc -vV | sed -n 's/^host: //p')" \
-  --version 0.1.0 \
+  --version 0.1.2 \
   --binary target/release/binstall-extra-fixture
-tar -tzf dist/binstall-extra-fixture-$(rustc -vV | sed -n 's/^host: //p')-v0.1.0.tar.gz
+tar -tzf dist/binstall-extra-fixture-$(rustc -vV | sed -n 's/^host: //p')-v0.1.2.tar.gz
 ```

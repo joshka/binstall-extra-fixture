@@ -1,0 +1,11 @@
+[package]
+name = "xtask"
+version = "0.1.0"
+edition = "2024"
+publish = false
+
+[dependencies]
+binstall-extra-fixture = { path = ".." }
+clap = { version = "4.6.0", features = ["derive"] }
+clap_complete = "4.6.2"
+clap_mangen = "0.3.0"

@@ -4,11 +4,23 @@ use std::{
     process::Command,
 };
 
-use clap::Parser;
+use clap::{Parser, Subcommand};
 
 #[derive(Debug, Parser)]
-#[command(about = "Build a release archive with man page and shell completions")]
-struct Args {
+#[command(about = "Repository automation tasks")]
+struct Cli {
+    #[command(subcommand)]
+    command: Commands,
+}
+
+#[derive(Debug, Subcommand)]
+enum Commands {
+    /// Build a release archive with man page and shell completions.
+    PackageRelease(PackageReleaseArgs),
+}
+
+#[derive(Debug, Parser)]
+struct PackageReleaseArgs {
     /// Rust target triple used to name the output archive.
     #[arg(long)]
     target: String,
@@ -27,9 +39,19 @@ struct Args {
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let args = Args::parse();
-    let crate_root = PathBuf::from(env::var("CARGO_MANIFEST_DIR")?);
-    let stage_dir = args.out_dir.join(format!(
+    let cli = Cli::parse();
+
+    match cli.command {
+        Commands::PackageRelease(args) => package_release(args)?,
+    }
+
+    Ok(())
+}
+
+fn package_release(args: PackageReleaseArgs) -> Result<(), Box<dyn std::error::Error>> {
+    let workspace_root = PathBuf::from(env::var("CARGO_MANIFEST_DIR")?).join("..");
+    let out_dir = workspace_root.join(&args.out_dir);
+    let stage_dir = out_dir.join(format!(
         "binstall-extra-fixture-{}-v{}",
         args.target, args.version
     ));
@@ -43,7 +65,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     fs::create_dir_all(stage_dir.join("completions/fish"))?;
     fs::create_dir_all(stage_dir.join("completions/zsh"))?;
 
-    fs::copy(&args.binary, stage_dir.join("binstall-extra-fixture"))?;
+    fs::copy(
+        workspace_root.join(&args.binary),
+        stage_dir.join("binstall-extra-fixture"),
+    )?;
 
     let cmd = binstall_extra_fixture::command();
     let man = clap_mangen::Man::new(cmd.clone());
@@ -70,7 +95,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         &stage_dir.join("completions/zsh/_binstall-extra-fixture"),
     )?;
 
-    let archive = args.out_dir.join(format!(
+    let archive = out_dir.join(format!(
         "binstall-extra-fixture-{}-v{}.tar.gz",
         args.target, args.version
     ));
@@ -79,7 +104,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         fs::remove_file(&archive)?;
     }
 
-    create_archive(&crate_root, &args.out_dir, &archive, &stage_dir)?;
+    create_archive(&workspace_root, &out_dir, &archive, &stage_dir)?;
     println!("{}", archive.display());
     Ok(())
 }
@@ -97,13 +122,13 @@ fn write_completion(
 }
 
 fn create_archive(
-    crate_root: &Path,
+    workspace_root: &Path,
     out_dir: &Path,
     archive: &Path,
     stage_dir: &Path,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let status = Command::new("tar")
-        .current_dir(crate_root)
+        .current_dir(workspace_root)
         .arg("-czf")
         .arg(archive)
         .arg("-C")

@@ -1,6 +1,6 @@
 [package]
 name = "binstall-extra-fixture"
-version = "0.1.0"
+version = "0.1.2"
 edition = "2024"
 description = "Fixture crate for testing cargo-binstall extra-file installs"
 license = "MIT"
@@ -15,11 +15,8 @@ pkg-fmt = "tgz"
 name = "binstall-extra-fixture"
 path = "src/main.rs"
 
-[[bin]]
-name = "package-release"
-path = "src/bin/package-release.rs"
+[workspace]
+members = ["xtask"]
 
 [dependencies]
 clap = { version = "4", features = ["derive"] }
-clap_complete = "4"
-clap_mangen = "0.3"
